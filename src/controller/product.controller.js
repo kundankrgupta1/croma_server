@@ -118,3 +118,67 @@ export const getSingleProduct = async (req, res) => {
 	}
 }
 
+export const getProducts = async (req, res) => {
+	const { q, category } = req.query;
+	try {
+		const query = {};
+
+		if (q) {
+			query.product_title = { $regex: q, $options: 'i' };
+		}
+
+		if (category) {
+			query.category = { $regex: `^${category}$`, $options: "i" };
+		}
+
+		if (!q && !category) {
+			return res.status(400).json({
+				message: "No query parameters provided. Please provide a search term or category.",
+				success: false
+			});
+		}
+
+		const product = await Product.find(query);
+
+		if (!product || product.length === 0) {
+			return res.status(400).json({
+				message: "Products not found",
+				success: false
+			});
+		}
+		return res.status(200).json({
+			message: "Products fetched successfully!",
+			product: product,
+			success: true
+		})
+	} catch (error) {
+		return res.status(500).json({
+			message: "Error fetching products",
+			success: false
+		})
+	}
+}
+
+export const getAllProducts = async (req, res) => {
+	try {
+		const products = await Product.find();
+
+		if (!products || products.length === 0) {
+			return res.status(400).json({
+				message: "Products not found",
+				success: false
+			});
+		}
+		return res.status(200).json({
+			message: "Products fetched successfully!",
+			data: products,
+			success: true
+		})
+	} catch (error) {
+		return res.status(500).json({
+			message: `Error fetching products ${error}`,
+			success: false
+		})
+	}
+}
+
